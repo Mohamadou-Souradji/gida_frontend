@@ -1,0 +1,11 @@
+node_modules/
+/dist/
+/.angular/
+/out-tsc/
+.env
+.env.*
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+npm-debug.log*
