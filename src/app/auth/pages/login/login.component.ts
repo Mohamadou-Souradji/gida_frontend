@@ -6,8 +6,9 @@ import { I18nService } from '../../../core/services/i18n.service';
 import { ProfileType } from '../../../shared/models/user.model';
 
 /**
- * Connexion / inscription par OTP SMS, commune aux 6 profils (regle n5).
- * Etape 1 : telephone -> envoi du code. Etape 2 : code (+ choix du profil a la premiere connexion).
+ * Connexion / inscription par code a usage unique, commune aux 6 profils (regle n5).
+ * Etape 1 : telephone (+ email a l'inscription) -> le code part par email.
+ * Etape 2 : code (+ choix du profil a la premiere connexion).
  */
 @Component({
   selector: 'gj-login',
@@ -51,7 +52,7 @@ import { ProfileType } from '../../../shared/models/user.model';
               </span>
               <span>
                 <strong>{{ 'Identité vérifiée par niveaux' | t }}</strong><br />
-                {{ "Du téléphone vérifié jusqu'à la vérification terrain." | t }}
+                {{ "De l'email vérifié jusqu'à la vérification terrain." | t }}
               </span>
             </li>
             <li>
@@ -73,7 +74,8 @@ import { ProfileType } from '../../../shared/models/user.model';
 
           <ng-container *ngIf="!otpEnvoye">
             <h1>{{ 'Connexion' | t }}</h1>
-            <p class="auth__sous-titre">{{ 'Entrez votre numéro pour recevoir un code par SMS.' | t }}</p>
+            <p class="auth__sous-titre" *ngIf="!emailRequis">{{ 'Entrez votre numéro pour recevoir un code de connexion par email.' | t }}</p>
+            <p class="auth__sous-titre" *ngIf="emailRequis">{{ 'Première connexion avec ce numéro : indiquez votre email, le code y sera envoyé.' | t }}</p>
 
             <form [formGroup]="phoneForm" (ngSubmit)="demanderOtp()">
               <label for="phone">{{ 'Numéro de téléphone' | t }}</label>
@@ -83,9 +85,18 @@ import { ProfileType } from '../../../shared/models/user.model';
                 </svg>
                 <input id="phone" class="auth__input" formControlName="phone" type="tel" inputmode="tel" placeholder="90 00 00 00" autocomplete="tel" />
               </div>
+              <ng-container *ngIf="emailRequis">
+                <label for="email">{{ 'Adresse email' | t }}</label>
+                <div class="champ">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                  </svg>
+                  <input id="email" class="auth__input" formControlName="email" type="email" inputmode="email" placeholder="nom@exemple.com" autocomplete="email" />
+                </div>
+              </ng-container>
 
-              <button type="submit" class="auth__bouton" [disabled]="phoneForm.invalid || envoi">
-                <span>{{ 'Recevoir le code' | t }}</span>
+              <button type="submit" class="auth__bouton" [disabled]="phoneForm.invalid || envoi || (emailRequis && phoneForm.controls.email.invalid)">
+                <span>{{ (emailRequis ? 'Recevoir le code par email' : 'Recevoir le code') | t }}</span>
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
                 </svg>
@@ -96,11 +107,12 @@ import { ProfileType } from '../../../shared/models/user.model';
           <ng-container *ngIf="otpEnvoye">
             <h1>{{ 'Code de vérification' | t }}</h1>
             <p class="auth__sous-titre">
-              {{ 'Code envoyé au' | t }} <strong>{{ phoneNormalise }}</strong>
+              <ng-container *ngIf="emailMasque; else versTelephone">{{ 'Code envoyé à' | t }} <strong>{{ emailMasque }}</strong></ng-container>
+              <ng-template #versTelephone>{{ 'Code envoyé au' | t }} <strong>{{ phoneNormalise }}</strong></ng-template>
             </p>
 
             <form [formGroup]="otpForm" (ngSubmit)="verifierOtp()">
-              <label for="code">{{ 'Code reçu par SMS' | t }}</label>
+              <label for="code">{{ (emailMasque ? 'Code reçu par email' : 'Code reçu par SMS') | t }}</label>
               <div class="champ champ--code">
                 <input id="code" class="auth__input auth__input--code" formControlName="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000" />
               </div>
@@ -125,7 +137,8 @@ import { ProfileType } from '../../../shared/models/user.model';
                 </svg>
               </button>
 
-              <button type="button" class="auth__bouton auth__bouton--secondaire" (click)="otpEnvoye = false">
+              <p class="auth__aide" *ngIf="emailMasque">{{ "Pas reçu ? Regardez dans les courriers indésirables (spam), puis redemandez un code." | t }}</p>
+              <button type="button" class="auth__bouton auth__bouton--secondaire" (click)="changerNumero()">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>
                 </svg>
@@ -287,6 +300,7 @@ import { ProfileType } from '../../../shared/models/user.model';
       box-shadow: 0 0 0 4px rgba(26, 60, 110, 0.12);
     }
     .champ--code > .auth__input { padding-left: 14px; }
+    .auth__aide { margin: 12px 0 0; font-size: 13px; color: var(--gj-text-muted); }
     .auth__input--code {
       text-align: center;
       font-size: 24px;
@@ -377,6 +391,9 @@ export class LoginComponent implements OnInit {
   otpEnvoye = false;
   nouvelUtilisateur = false;
   phoneNormalise = '';
+  /** Le serveur attend l'email du compte (inscription) avant d'envoyer le code. */
+  emailRequis = false;
+  emailMasque = '';
   envoi = false;
 
   profils: { code: ProfileType }[] = [
@@ -384,7 +401,10 @@ export class LoginComponent implements OnInit {
     { code: 'INGENIEUR_ARCHITECTE' }, { code: 'FOURNISSEUR_MATERIAUX' }, { code: 'ONG_INSTITUTION' }
   ];
 
-  phoneForm = this.fb.nonNullable.group({ phone: ['', [Validators.required, Validators.minLength(8)]] });
+  phoneForm = this.fb.nonNullable.group({
+    phone: ['', [Validators.required, Validators.minLength(8)]],
+    email: ['', [Validators.email, Validators.maxLength(160)]]
+  });
   otpForm = this.fb.nonNullable.group({
     code: ['', [Validators.required, Validators.pattern(/^\d{4,8}$/)]],
     profileType: ['CLIENT_PARTICULIER' as ProfileType]
@@ -399,16 +419,34 @@ export class LoginComponent implements OnInit {
   }
 
   demanderOtp(): void {
+    const { phone, email } = this.phoneForm.getRawValue();
     this.envoi = true;
-    this.authService.demanderOtp(this.phoneForm.getRawValue().phone).subscribe({
+    this.authService.demanderOtp(phone, this.emailRequis ? email.trim() : undefined).subscribe({
       next: res => {
+        this.envoi = false;
         this.phoneNormalise = res.phone;
         this.nouvelUtilisateur = res.nouvelUtilisateur;
+        if (res.emailRequis) {
+          // Inscription : on demande l'email, aucun code n'est encore parti.
+          this.emailRequis = true;
+          this.phoneForm.controls.email.addValidators(Validators.required);
+          this.phoneForm.controls.email.updateValueAndValidity();
+          setTimeout(() => document.getElementById('email')?.focus());
+          return;
+        }
+        this.emailMasque = res.emailMasque ?? '';
         this.otpEnvoye = true;
-        this.envoi = false;
       },
       error: () => (this.envoi = false)
     });
+  }
+
+  changerNumero(): void {
+    this.otpEnvoye = false;
+    this.emailRequis = false;
+    this.emailMasque = '';
+    this.phoneForm.controls.email.removeValidators(Validators.required);
+    this.phoneForm.controls.email.setValue('');
   }
 
   verifierOtp(): void {

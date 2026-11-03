@@ -53,7 +53,7 @@ const LIBELLES: Record<string, string> = {
   ONG_INSTITUTION: 'ONG / Institution',
   // KYC
   NIVEAU_0_NON_VERIFIE: '0 - Non vérifié',
-  NIVEAU_1_TELEPHONE_VERIFIE: '1 - Téléphone vérifié',
+  NIVEAU_1_TELEPHONE_VERIFIE: '1 - Email vérifié',
   NIVEAU_2_IDENTITE_DECLAREE: '2 - Identité déclarée',
   NIVEAU_3_PIECE_IDENTITE: '3 - Pièce d\'identité',
   NIVEAU_4_JUSTIFICATIF_DOMICILE: '4 - Justificatif de domicile',

@@ -33,7 +33,7 @@ import { ToastService } from '../../core/services/toast.service';
       <ol class="etapes-kyc">
         <li>
           <span class="etapes-kyc__num">1</span>
-          <div><strong>{{ 'Niveau 1' | t }}</strong><span>{{ 'Téléphone vérifié par SMS (automatique).' | t }}</span></div>
+          <div><strong>{{ 'Niveau 1' | t }}</strong><span>{{ 'Email vérifié par code à la connexion (automatique).' | t }}</span></div>
         </li>
         <li>
           <span class="etapes-kyc__num">2</span>

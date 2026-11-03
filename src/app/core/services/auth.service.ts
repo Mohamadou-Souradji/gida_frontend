@@ -10,6 +10,17 @@ const PROFILE_KEY = 'gj_profile_type';
 const KYC_KEY = 'gj_kyc_level';
 const ADMIN_KEY = 'gj_admin';
 
+/** Reponse de /auth/otp/demander. */
+export interface ReponseDemandeOtp {
+  phone: string;
+  nouvelUtilisateur: boolean;
+  canal: 'EMAIL' | 'SMS';
+  /** true : aucun code envoye, il faut fournir l'email du compte (inscription). */
+  emailRequis: boolean;
+  /** Ex. a***e@gmail.com : ou le code a ete envoye. */
+  emailMasque?: string;
+}
+
 /** Route d'accueil de chaque profil. */
 export const ACCUEIL_PAR_PROFIL: Record<ProfileType, string> = {
   CLIENT_PARTICULIER: '/client',
@@ -21,7 +32,7 @@ export const ACCUEIL_PAR_PROFIL: Record<ProfileType, string> = {
 };
 
 /**
- * Authentification par OTP SMS - consomme /api/auth (voir AuthController backend).
+ * Authentification par code a usage unique (email) - consomme /api/auth (voir AuthController backend).
  * La session (token + profil + niveau KYC) est conservee dans le localStorage ;
  * le niveau KYC et le solde sont rafraichis via /api/compte/moi.
  */
@@ -32,9 +43,12 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  demanderOtp(phone: string): Observable<{ phone: string; nouvelUtilisateur: boolean }> {
-    return this.http.post<{ phone: string; nouvelUtilisateur: boolean }>(
-      `${environment.apiBaseUrl}/auth/otp/demander`, { phone });
+  /**
+   * Demande du code de connexion. Le code part par email : a l'inscription, le serveur repond
+   * d'abord emailRequis=true, et il faut redemander avec l'email.
+   */
+  demanderOtp(phone: string, email?: string): Observable<ReponseDemandeOtp> {
+    return this.http.post<ReponseDemandeOtp>(`${environment.apiBaseUrl}/auth/otp/demander`, email ? { phone, email } : { phone });
   }
 
   verifierOtp(phone: string, code: string, profileType?: ProfileType): Observable<AuthResponse> {

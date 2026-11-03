@@ -38,6 +38,7 @@ import { OPERATEURS_MOBILE_MONEY } from '../../shared/models/escrow.model';
           <strong>{{ c.profileType | libelle }}</strong>
           <div class="chips">
             <span class="chip"><gj-icone nom="phone"></gj-icone>{{ c.phone }}</span>
+            <span class="chip" *ngIf="c.email"><gj-icone nom="mail"></gj-icone>{{ c.email }}</span>
           </div>
         </div>
         <div class="actions">

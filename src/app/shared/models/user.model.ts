@@ -39,6 +39,7 @@ export interface AuthResponse {
 export interface Compte {
   id: string;
   phone: string;
+  email?: string | null;
   profileType: ProfileType;
   kycLevel: KycLevel;
   walletBalance: number;
