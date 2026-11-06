@@ -16,15 +16,9 @@ import { ProfileType } from '../../../shared/models/user.model';
     <section class="auth">
       <div class="auth__coque">
 
-        <aside class="auth__panneau" aria-hidden="false">
-          <div class="auth__logo">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
-              <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            </svg>
-          </div>
-
-          <div>
+        <aside class="auth__panneau">
+          <div class="auth__marque">
+            <img class="auth__logo-img" src="assets/logo-gida-jari.jpeg" alt="Logo Gida Jari" />
             <h2>Gida Jari</h2>
             <p>{{ 'La maison de demain' | t }}</p>
           </div>
@@ -269,7 +263,7 @@ import { ProfileType } from '../../../shared/models/user.model';
       width: 100%;
       max-width: 960px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr);
       background: #fff;
       border: 1px solid var(--gj-border);
       border-radius: 20px;
@@ -284,8 +278,8 @@ import { ProfileType } from '../../../shared/models/user.model';
       padding: 44px 40px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      gap: 32px;
+      justify-content: center;
+      gap: 36px;
     }
     .auth__logo {
       width: 56px;
@@ -295,6 +289,16 @@ import { ProfileType } from '../../../shared/models/user.model';
       display: grid;
       place-items: center;
       color: var(--gj-gold);
+    }
+    .auth__marque { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+    .auth__logo-img {
+      width: 128px;
+      height: auto;
+      border-radius: 20px;
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+      margin-bottom: 14px;
     }
     .auth__panneau h2 {
       color: #fff;
@@ -423,6 +427,8 @@ import { ProfileType } from '../../../shared/models/user.model';
     .auth__erreur { color: var(--gj-red); font-size: 13px; margin: 8px 0 0; }
     .grille-inscription { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
     @media (max-width: 480px) { .grille-inscription { grid-template-columns: 1fr; } }
+    .choix-profils { margin-bottom: 18px; }
+    .grille-inscription label { margin-top: 0; }
     /* Boutons */
     .auth .auth__bouton {
       width: 100%;
@@ -491,7 +497,7 @@ import { ProfileType } from '../../../shared/models/user.model';
 
     @media (max-width: 480px) {
       .auth__panneau { padding: 20px; flex-direction: row; align-items: center; }
-      .auth__logo { width: 44px; height: 44px; border-radius: 12px; }
+      .auth__logo-img { width: 64px; padding: 6px; border-radius: 14px; margin-bottom: 0; }
       .auth__panneau h2 { font-size: 22px; }
       .auth__formulaire { padding: 24px 18px; }
       .auth__formulaire h1 { font-size: 22px; }
