@@ -122,7 +122,7 @@ export class ProfilFormComponent implements OnInit {
   enregistrer(): void {
     const manquants = this.champs.filter(c => c.requis && !this.form.get(c.cle)?.value);
     this.envoi = true;
-    this.http.put(this.url, this.form.value).subscribe({
+    this.http.patch(`${environment.apiBaseUrl}/${this.ressource}/complete-profile`, this.form.value).subscribe({
       next: () => {
         this.envoi = false;
         this.auth.rafraichirCompte().subscribe();
